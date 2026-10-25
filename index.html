@@ -238,7 +238,7 @@ var SONG_URL="https://youtu.be/zhXHTElk_xk"; // paste the YouTube song link here
 var yid=(SONG_URL.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/)||[])[1],yp=null,mus=document.getElementById('mus');
 if(yid)mus.hidden=false;
 function ytStart(){if(!yid||yp)return;var sc=document.createElement('script');sc.src='https://www.youtube.com/iframe_api';document.head.appendChild(sc);
- window.onYouTubeIframeAPIReady=function(){yp=new YT.Player('yt',{width:'2',height:'2',videoId:yid,playerVars:{autoplay:1,loop:1,playlist:yid,controls:0,playsinline:1},events:{onReady:function(e){e.target.setVolume(60);e.target.playVideo()},onStateChange:function(e){mus.dataset.on=(e.data===1||e.data===3)}}})}}
+ window.onYouTubeIframeAPIReady=function(){yp=new YT.Player('yt',{width:'2',height:'2',videoId:yid,playerVars:{autoplay:1,loop:1,playlist:yid,controls:0,playsinline:1},events:{onReady:function(e){e.target.setVolume(60);e.target.seekTo(0.04,true);e.target.playVideo()},onStateChange:function(e){mus.dataset.on=(e.data===1||e.data===3)}}})}}
 mus.onclick=function(){if(!yp){ytStart();return}if(yp.getPlayerState()===1)yp.pauseVideo();else yp.playVideo()};
 document.getElementById('open').onclick=function(){ytStart();book.children[0].classList.add('opening');setTimeout(function(){go(1)},350)};
 document.addEventListener('keydown',function(e){var c=cur();if(e.key==='ArrowDown'||e.key==='ArrowRight')go(Math.min(N-1,c+1));if(e.key==='ArrowUp'||e.key==='ArrowLeft')go(Math.max(0,c-1))});
