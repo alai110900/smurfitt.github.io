@@ -102,9 +102,9 @@ input:focus,textarea:focus{outline:2px solid var(--rose)}
 .ir{display:grid;grid-template-columns:5.2em 1fr;gap:.8em;margin:.8em 0;line-height:1.3}.ir span:first-child{text-align:right;white-space:nowrap;color:var(--rose);font-weight:600}
 /* nav dots */
 .dots{position:fixed;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:3}
-.mus{position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:5;width:42px;height:42px;border-radius:50%;border:1.5px solid #fff;background:var(--rose);color:#fff;font-size:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.35);overflow:hidden}.mus[hidden]{display:none}
+.mus{position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:5;width:42px;height:42px;border-radius:50%;border:1.5px solid #fff;background:var(--rose);color:#fff;font-size:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.35);overflow:hidden}.mus[hidden]{display:none}.mus{display:none!important}
 .mus[data-on=false]{opacity:.7}.mus[data-on=false]::after{content:"";position:absolute;left:6px;right:6px;top:50%;border-top:2px solid #fff;transform:rotate(-45deg)}
-#yt{position:fixed;left:0;top:0;width:2px;height:2px;overflow:hidden;opacity:0;pointer-events:none}
+#yt,#yt iframe{position:fixed;left:0;bottom:0;width:200px;height:200px;opacity:.01;pointer-events:none;z-index:-1}
 .dots button{width:11px;height:11px;border-radius:50%;border:1.5px solid #fff;background:rgba(176,88,111,.35);padding:0;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.35)}
 .dots button[aria-current=true]{background:var(--rose);transform:scale(1.35)}
 @media (prefers-reduced-motion:reduce){.stage,.panel,.p1 .env{transition:none}.pop{transition:none}.book{scroll-behavior:auto}.seal::after{animation:none}}
@@ -138,8 +138,6 @@ input:focus,textarea:focus{outline:2px solid var(--rose)}
 .dua .orn{display:flex;align-items:center;gap:10px;justify-content:center;color:var(--rose);margin-bottom:6px}.dua .orn::before,.dua .orn::after{content:"";height:1px;width:56px;background:linear-gradient(90deg,transparent,rgba(176,88,111,.7))}.dua .orn::after{transform:scaleX(-1)}
 .doa{margin:0;font:italic 600 1.08rem/1.4 var(--serif);color:var(--rose)}
 .pg.wishbg{background:linear-gradient(165deg,#e2eedb 0%,#eef0e4 45%,#f5e1e6 100%)}.pg.wishbg::before{display:none}
-.mus{display:none!important}
-.mus{display:none!important}
 </style>
 </head>
 <body>
@@ -222,7 +220,7 @@ input:focus,textarea:focus{outline:2px solid var(--rose)}
 </div>
 <div class="pop" id="pop" role="status" aria-live="polite"></div>
 <div class="modal" id="modal" hidden><div class="mbox" role="dialog" aria-label="All wishes"><h2>All wishes</h2><div id="mlist"></div><button class="btn" id="mx">Close</button></div></div>
-<div id="yt"></div><button class="mus" id="mus" data-on="false" aria-label="Music on or off" hidden>♪</button>
+<div id="yt"></div><button class="mus" id="mus" data-on="false" aria-label="Music on or off">♪</button>
 <nav class="dots" id="dots" aria-label="Pages"></nav>
 
 <script>
@@ -239,10 +237,14 @@ book.addEventListener('scroll',mark);mark();
 var SONG_URL="https://youtu.be/zhXHTElk_xk"; // paste the YouTube song link here
 var yid=(SONG_URL.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/)||[])[1],yp=null,mus=document.getElementById('mus');
 
-function ytStart(){if(!yid||yp)return;var sc=document.createElement('script');sc.src='https://www.youtube.com/iframe_api';document.head.appendChild(sc);
- window.onYouTubeIframeAPIReady=function(){yp=new YT.Player('yt',{width:'2',height:'2',videoId:yid,playerVars:{autoplay:1,loop:1,playlist:yid,controls:0,playsinline:1},events:{onReady:function(e){e.target.setVolume(60);e.target.seekTo(4,true);e.target.playVideo()},onStateChange:function(e){mus.dataset.on=(e.data===1||e.data===3)}}})}}
-mus.onclick=function(){if(!yp){ytStart();return}if(yp.getPlayerState()===1)yp.pauseVideo();else yp.playVideo()};
-document.getElementById('open').onclick=function(){ytStart();book.children[0].classList.add('opening');setTimeout(function(){go(1)},350)};
+var ready=false,want=false,userOff=false;
+function ytLoad(){if(!yid||document.getElementById('ytapi'))return;var sc=document.createElement('script');sc.id='ytapi';sc.src='https://www.youtube.com/iframe_api';document.head.appendChild(sc)}
+window.onYouTubeIframeAPIReady=function(){yp=new YT.Player('yt',{width:'200',height:'200',videoId:yid,playerVars:{loop:1,playlist:yid,controls:0,playsinline:1,rel:0,start:4},events:{onReady:function(e){ready=true;e.target.setVolume(60);if(want&&!userOff)e.target.playVideo()},onStateChange:function(e){mus.dataset.on=(e.data===1||e.data===3)},onError:function(){mus.hidden=true}}})};
+function playSong(){if(userOff)return;want=true;if(ready&&yp.getPlayerState()!==1)yp.playVideo()}
+mus.onclick=function(e){e.stopPropagation();if(!ready){userOff=false;want=true;return}if(yp.getPlayerState()===1||yp.getPlayerState()===3){userOff=true;want=false;yp.pauseVideo()}else{userOff=false;want=true;yp.playVideo()}};
+ytLoad();
+['touchend','click'].forEach(function(ev){document.addEventListener(ev,function f(){if(!want&&!userOff)playSong();else if(ready&&yp.getPlayerState()!==1&&!userOff)yp.playVideo()},{passive:true})});
+document.getElementById('open').onclick=function(){playSong();book.children[0].classList.add('opening');setTimeout(function(){go(1)},350)};
 document.addEventListener('keydown',function(e){var c=cur();if(e.key==='ArrowDown'||e.key==='ArrowRight')go(Math.min(N-1,c+1));if(e.key==='ArrowUp'||e.key==='ArrowLeft')go(Math.max(0,c-1))});
 var yes=document.getElementById('yes'),no=document.getElementById('no'),pn=document.getElementById('pn'),pax=1;
 function att(v){yes.setAttribute('aria-pressed',v);no.setAttribute('aria-pressed',!v);document.getElementById('paxw').style.display=v?'flex':'none'}
@@ -261,13 +263,19 @@ function all(){return DBW.concat(WISHES.slice().reverse())}
 function row(x,c){var r=document.createElement('div'),b=document.createElement('b');if(c)r.className=c;b.textContent=x.n||'Guest';r.appendChild(b);r.appendChild(document.createTextNode(' — '+(x.m||'')));return r}
 function tick(){var a=all();if(!a.length||cur()<1){pop.classList.remove('on');return}pop.textContent='';pop.appendChild(row(a[k++%a.length]));pop.classList.add('on');setTimeout(function(){pop.classList.remove('on')},5200)}
 setInterval(tick,6800);setTimeout(tick,1500);
-function openM(){var a=all();mlist.textContent='';if(!a.length){mlist.textContent='No wishes yet. Be the first!'}a.forEach(function(x){mlist.appendChild(row(x,'w'))});modal.hidden=false}
+function openM(){load(function(){if(!modal.hidden)fill()});fill();modal.hidden=false}
+function fill(){var a=all();mlist.textContent='';if(!a.length){mlist.textContent='No wishes yet. Be the first!'}a.forEach(function(x){mlist.appendChild(row(x,'w'))})}
 pop.onclick=openM;document.getElementById('rall').onclick=openM;document.getElementById('mx').onclick=function(){modal.hidden=true};
 modal.onclick=function(e){if(e.target===modal)modal.hidden=true};document.addEventListener('keydown',function(e){if(e.key==='Escape')modal.hidden=true});
 var WISH_URL="https://docs.google.com/forms/d/e/1FAIpQLScHkkHm1jbttG73PNFo8OT09RqhqKfnRDCyMCMdcrDqg1W4TA/formResponse";
-var WISHES_CSV="https://docs.google.com/spreadsheets/d/1JiqvDgU7bE6T06ArNzLVjeOf9PDpf70Ub9DQMAfbssA/gviz/tq?tqx=out:csv"; // paste the published CSV link of the wishes sheet here
+var WISHES_CSV="https://docs.google.com/spreadsheets/d/1JiqvDgU7bE6T06ArNzLVjeOf9PDpf70Ub9DQMAfbssA/gviz/tq?tqx=out:csv&headers=1"; // paste the published CSV link of the wishes sheet here
 function csv(t){var r=[],row=[],c='',q=false;for(var i=0;i<t.length;i++){var ch=t[i];if(q){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++}else q=false}else c+=ch}else if(ch=='"')q=true;else if(ch==','){row.push(c);c=''}else if(ch=='\n'||ch=='\r'){if(ch=='\r'&&t[i+1]=='\n')i++;row.push(c);r.push(row);row=[];c=''}else c+=ch}if(c||row.length){row.push(c);r.push(row)}return r}
-function load(){if(!WISHES_CSV)return;fetch(WISHES_CSV).then(function(r){return r.text()}).then(function(t){DBW=csv(t).slice(1).filter(function(r){return r[2]&&r[2].trim()}).map(function(r){return{n:r[1],m:r[2]}}).reverse()}).catch(function(){})}
+function load(cb){if(!WISHES_CSV)return;fetch(WISHES_CSV+'&_='+Date.now()).then(function(r){return r.text()}).then(function(t){
+ if(/^\s*</.test(t)){console.warn('Wishes sheet is not public (set sharing to Anyone with the link: Viewer)');return}
+ var rows=csv(t);if(rows.length<2)return;var h=rows[0].map(function(x){return(x||'').toLowerCase()}),ci=-1,ni=-1;
+ h.forEach(function(x,i){if(ni<0&&/name|nama/.test(x))ni=i;else if(ci<0&&/wish|message|ucap|doa/.test(x))ci=i});
+ if(ci<0)ci=2;if(ni<0)ni=1;
+ DBW=rows.slice(1).filter(function(r){return r[ci]&&r[ci].trim()}).map(function(r){return{n:r[ni],m:r[ci]}}).reverse();if(cb)cb()}).catch(function(){})}
 load();setInterval(load,60000);
 document.getElementById('wsend').onclick=function(){var n=document.getElementById('wn').value.trim(),me=document.getElementById('wm'),m=me.value.trim(),b=this;if(!m){me.focus();return}
  var d=new URLSearchParams();d.append('entry.533020205',n||'Guest');d.append('entry.778838624',m);b.disabled=true;b.textContent='Sending…';
