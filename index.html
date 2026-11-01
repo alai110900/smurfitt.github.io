@@ -17,7 +17,7 @@ html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;height:100%;background:var(--page);font-family:var(--serif);color:var(--ink);overflow:hidden}
 .book{position:relative;height:100svh;overflow-y:auto;overflow-x:hidden;scroll-snap-type:y mandatory;scrollbar-width:none}
 .book::-webkit-scrollbar{display:none}
-.pg{min-height:100svh;scroll-snap-align:start;position:relative;display:grid;place-items:center;overflow:hidden;padding:36px 0}
+.pg{min-height:100svh;scroll-snap-align:start;position:relative;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;overflow:hidden;padding:36px 0}
 h2{font-family:var(--script);font-weight:400;font-size:max(34px,12cqw);color:var(--rose);margin:0 0 .3em;line-height:1.1}
 
 /* page 1 – cover */
